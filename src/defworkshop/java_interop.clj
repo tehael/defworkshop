@@ -109,26 +109,26 @@ hint: use bean to access thread information."
 ;;   * `:name` fully qualified name of the class (together with package).
 ;;
 
-(comment
-  (gen-class
-   :name workshop_tasks_implemented.java_interop.Shout
-   :prefix Shout-
-   :state …
-   :init …
-   :constructors …))
+
+(gen-class
+ :name workshop_tasks_implemented.java_interop.Shout
+ :prefix Shout-
+ :state state
+ :init init
+ :constructors {[String] []})
 
 (defn- Shout-toString
   [this]
-  (…))
+  (.state this))
 
 (defn- Shout-init
   [s]
-  [nil (…)])
+  [nil (.toUpperCase s)])
 
-(defn ^:not-implemented shout
+(defn shout
   "Implement a factory function for `Shout` class, that would call a constructor of the class."
   [str]
-  (…))
+  (workshop_tasks_implemented.java_interop.Shout. str))
 
 ;; Implement a `Greeter` class, whose Java implementation would look something like that:
 ;;
@@ -150,20 +150,19 @@ hint: use bean to access thread information."
 ;; receives `String` and returns that string concatenated with `Hello`.
 ;;
 
-(comment
-  (gen-class
-   :name workshop_tasks_implemented.java_interop.Greeter
-   :prefix Greeter-
-   :methods …))
+(gen-class
+ :name workshop_tasks_implemented.java_interop.Greeter
+ :prefix Greeter-
+ :methods [[greet [String] String]])
 
 (defn- Greeter-greet
   [this s]
-  (…))
+  (str "Hello, " s "!"))
 
-(defn ^:not-implemented greeter
+(defn greeter
   "Make a factory function that would create an instance of `Greeter` class."
   []
-  (…))
+  (workshop_tasks_implemented.java_interop.Greeter.))
 
 ;; You can also implement interfaces using `gen-class`, for that you should use `:implements`
 ;; attribute, for example:
