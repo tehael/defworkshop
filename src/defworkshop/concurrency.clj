@@ -11,44 +11,47 @@
 ;; First, let's write a function that constructs a bank account, which is basically an atom.
 ;;
 
-(defn ^:not-implemented make-bank-account
+(defn make-bank-account
   "Write a function that constructs a bank account out of given start amount.
    Use atoms to hold the amount."
   [start-amount]
-  (…))
+  (atom start-amount))
 
-(defn ^:not-implemented deposite
+(defn deposite
   "Write a function that receives an `account` as a first argument and adds money
    to the balance by using `swap!` and `+` function.
 
    Don't forget to check if amount to deposite is positive ;)"
   [account amount-to-deposite]
-  (…))
+  (when (> amount-to-deposite 0)
+    (swap! account + amount-to-deposite)))
 
-(defn ^:not-implemented withdraw
+(defn withdraw
   "Write a function that receives an `account` as a first argument and withdraws money
    from the balance by using `swap!` and `-` function.
 
    Don't forget to check if there're sufficient funds on balance, throw `RuntimeException`
    otherwise."
   [account amount-to-withdraw]
-  (…))
+  (when (>= @account amount-to-withdraw)
+    (swap! account - amount-to-withdraw)))
 
-(defn ^:not-implemented transfer
+(defn transfer
   "Now write a transfer function that will transfer an amount from one bank account to another."
   [account1 account2 amount]
-  (…))
+  (when (withdraw account1 amount)
+    (deposite account2 amount)))
 
-(defn ^:not-implemented get-balance
+(defn get-balance
   "Write a function that returns current amount of money on the balance by using dereferecing."
   [account]
-  (…))
+  (deref account))
 
 
 ;; # Tumbling Window
 ;;
 
-(defn ^:not-implemented tumbling-window
+(defn tumbling-window
   "A tumbling window. Tumbling windows (here) have a fixed a-priori known size.
 
    The idea is simple: using the `let-over-lambda` concept, write a function that has some state
@@ -71,10 +74,12 @@
       +---+  +---+---+  +---+---+---+                 -...-...-...-
 "
   [size emit-fn]
-  (…)
   (let [buffer (atom [])]
     (fn [next-value]
-      (…))))
+      (swap! buffer conj next-value)
+      (when (= size (count @buffer))
+        (emit-fn @buffer)
+        (reset! buffer [])))))
 
 ;; # Password Cracker
 ;;
@@ -99,10 +104,23 @@
 (defonce threads-count 32)
 (defonce executors (Executors/newFixedThreadPool threads-count))
 
-(defn ^:not-implemented crack-password
+(defn crack-password
   "You can get the dictionary from here: https://dl.dropboxusercontent.com/u/2516311/dictionary.txt"
   []
-  (…))
+  (let [passwords (clojure.string/split-lines (slurp "resources/passwords.txt"))
+        found (atom nil)
+        foundLatch (CountDownLatch. 1)]
+    (doseq [chunk (partition (quot (count passwords) 32) passwords)]      
+      (future (#(
+        (doseq [pass chunk]
+          (when (nil? @found)
+            ; (println (str "trying..."))
+            (when (= 200 (:status (workshoplib.core/try-password pass)))
+              (println pass)
+              (reset! found pass)
+              (.countDown foundLatch))))))))
+    (.await foundLatch)
+    @found))
 
 ;; # Word Count
 ;;
